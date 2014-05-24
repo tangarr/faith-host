@@ -9,13 +9,15 @@ QT       += core
 QT       -= gui
 
 TARGET = Faith
-CONFIG   += console
+CONFIG   += console c++11
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    window.cpp \
+    widget.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../faith-core/release/ -lfaith-core
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../faith-core/debug/ -lfaith-core
@@ -35,3 +37,7 @@ unix: PKGCONFIG += ncurses panel
 
 OTHER_FILES += \
     ../README
+
+HEADERS += \
+    window.h \
+    widget.h
