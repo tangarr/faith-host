@@ -83,6 +83,15 @@ bool Window::focusPrevWidget()
     }
 }
 
+void Window::addWidget(Widget *widget)
+{
+    _widgets.append(widget);
+    if (!_activeWidget && widget->isFocusable())
+    {
+        _activeWidget = widget;
+    }
+}
+
 Window::Window(int width, int height, int row, int column)
 {
     _window = newwin(width, height, row, column);

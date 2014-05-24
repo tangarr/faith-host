@@ -18,6 +18,7 @@ class Window
     bool focusNextWidget(bool tabPressed=false);
     bool focusPrevWidget();
     static QHash<panel*, Window*> _windows;
+    void addWidget(Widget* widget);
 public:
     Window(int width, int height, int row, int column);
     Window(int width, int height);
