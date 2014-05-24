@@ -7,6 +7,7 @@ ButtonBoxWidget::ButtonBoxWidget(const QStringList &buttons, int buttonWidth) : 
     _buttons = buttons;
     _selected = 0;
     _buttonWidth = buttonWidth;
+    _button_pressed = -1;
 }
 
 QString centerString(QString str, int width)
@@ -57,6 +58,7 @@ int ButtonBoxWidget::draw(int row, int margin)
 
 bool ButtonBoxWidget::keyUpPressed()
 {
+    _button_pressed = -1;
     int y = _selected/_x;
     if (y==0)
     {
@@ -75,6 +77,7 @@ bool ButtonBoxWidget::keyUpPressed()
 
 bool ButtonBoxWidget::keyDownPressed()
 {
+    _button_pressed = -1;
     int y = _selected/_x;
     if (y==_y)
     {
@@ -87,7 +90,7 @@ bool ButtonBoxWidget::keyDownPressed()
         int x = _selected%_x;
         y++;
         int new_select = x+y*_x;
-        if (new_select>_buttons.count()-1) _selected = _buttons.count()-1;
+        if (new_select>=_buttons.count()-1) new_select = _buttons.count()-1;
         _selected = new_select;
         return true;
     }
@@ -96,10 +99,37 @@ bool ButtonBoxWidget::keyDownPressed()
 
 bool ButtonBoxWidget::keyPressed(int key)
 {
+    _button_pressed = -1;
+    switch (key) {
+    case KEY_LEFT:
+        if (_selected>0)
+        {
+            _selected--;
+            return true;
+        }
+        else return false;
+    case KEY_RIGHT:
+        if (_selected<_buttons.count()-1)
+        {
+            _selected++;
+            return true;
+        }
+        else return false;
+    case 10:
+        _button_pressed = _selected;
+        return false;
+    default:
+        return false;
+    }
 
 }
 
 bool ButtonBoxWidget::isFocusable() const
 {
     return true;
+}
+
+int ButtonBoxWidget::buttonPressed()
+{
+    return _button_pressed;
 }

@@ -102,6 +102,7 @@ _win_st *Window::window() const
 
 int Window::showMessageBox(QString title, QString message, QStringList buttons)
 {
+    int out = -1;
     int width = screenWidth()/2;
     QStringList tmp = splitString(message, width-2);
     int height = tmp.count();
@@ -118,7 +119,14 @@ int Window::showMessageBox(QString title, QString message, QStringList buttons)
     {
         int c = Window::getCh();
         if (wnd->pressKey(c)) wnd->draw();
+        if (butWidget->buttonPressed()>=0)
+        {
+            out = butWidget->buttonPressed();
+            break;
+        }
     }
+    delete wnd;
+    refresh();
     return 0;
 }
 
