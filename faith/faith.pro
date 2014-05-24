@@ -32,3 +32,6 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../faith-core/libfaith-core.a
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += ncurses panel
+
+OTHER_FILES += \
+    ../README
