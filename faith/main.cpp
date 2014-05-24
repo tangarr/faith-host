@@ -10,7 +10,6 @@ int main(int argc, char *argv[])
 
     Window::Initialize();
 
-    Window wnd(10, 30);
     Window::refresh();
 
     Window::write("dupa blada ");
@@ -18,13 +17,17 @@ int main(int argc, char *argv[])
     Window::writeLn("test");
     Window::writeLn("test 2");
     Window::writeLn("test 3");
-    Window::refresh();
     for (int i=0;i<50;i++)
     {
         Window::write("0123456789abcdefgh");
     }
-    Window::writeLn("test 4");
-    Window::refresh();
+    Window::writeLn("test 4");    
+    getch();
+    Window::showMessageBox("Uwaga", "Testuje sobie\njakas wiadomosc tekstowa", {"OK"});
+    getch();
+    endwin();
+
+
 
     return a.exec();
 }

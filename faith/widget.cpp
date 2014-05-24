@@ -9,6 +9,7 @@ _win_st *Widget::parentWnd() const
 Widget::Widget(Window *parent)
 {
     _parent = parent;
+    parent->addWidget(this);
 }
 
 Widget::~Widget()

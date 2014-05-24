@@ -4,6 +4,7 @@
 #include "panel.h"
 #include <QString>
 #include <QStringList>
+#include "textwidget.h"
 
 QHash<panel*, Window*> Window::_windows;
 
@@ -97,6 +98,19 @@ _win_st *Window::window() const
     return _window;
 }
 
+int Window::showMessageBox(QString title, QString message, QStringList buttons)
+{
+    int width = screenWidth()/2;
+    QStringList tmp = splitString(message, width-2);
+    int height = tmp.count();
+    Window* wnd= new Window(height+3, width);
+    wnd->title = title;
+    TextWidget* text = new TextWidget(wnd, height, TextWidget::AlginCenter);
+
+    text->setText(message);
+    wnd->draw();
+}
+
 Window::Window(int height, int width, int row, int column)
 {
     _window = newwin(height, width, row, column);
@@ -143,12 +157,24 @@ int Window::height() const
 
 void Window::draw()
 {
+    wclear(_window);
+    box(_window, 0, 0);
+    if (title.length()>width()-2)
+    {
+        mvwprintw(_window, 0, 1, title.left(width()-2).toStdString().c_str());
+    }
+    else
+    {
+        int x = (width()-title.length())/2;
+        mvwprintw(_window, 0, x, title.toStdString().c_str());
+    }
     int row = 0;
     foreach (Widget* w, _widgets) {
-        row = w->draw(row, 1);
+        row = w->draw(row+1, 1);
         if (row>height()) break;
     }
-    wrefresh(_window);
+
+    refresh();
 }
 
 void Window::pressKey(int key)
@@ -221,7 +247,10 @@ void Window::write(QString msg)
         lines.append(tmp);
         lines.append(list);
     }
-    else lines.append(splitString(msg, startx));
+    else
+    {
+        lines.append(splitStringHard(msg, startx));
+    }
     if (lines.count()>screenHeight())
     {
         int c = lines.count();
@@ -275,10 +304,10 @@ QStringList &Window::splitString(QString msg, int width, int maxHeight)
                 out->append(str.left(index));
                 str = str.mid(index);
             }
-            if (out->count()>maxHeight) return *out;
+            if (maxHeight!=-1 && out->count()>maxHeight) return *out;
         }
         out->append(str);
-        if (out->count()>maxHeight) return *out;
+        if (maxHeight!=-1 && out->count()>maxHeight) return *out;
     }
     return *out;
 }

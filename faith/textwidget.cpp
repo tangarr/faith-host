@@ -11,7 +11,7 @@ TextWidget::TextWidget(Window *parent, int height, Algin a) : Widget(parent)
 int TextWidget::draw(int row, int margin)
 {
     int width = parent()->width()-2*margin;
-    int rowLeft = parent()->height() - row;
+    int rowLeft = parent()->height() - 2 - row;
     if (_height < rowLeft) rowLeft = _height;
     QStringList tmp = Window::splitString(_msg, width, rowLeft);
     _win_st* wnd = parentWnd();
