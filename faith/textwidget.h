@@ -13,7 +13,6 @@ public:
         AlginRight,
         AlginCenter
     };
-    QStringList &split(QString msg, int width, int maxHeight);
 private:
     QString _msg;
     int _height;

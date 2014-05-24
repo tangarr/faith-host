@@ -9,6 +9,10 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     Window::Initialize();
+
+    Window wnd(10, 30);
+    Window::refresh();
+
     Window::write("dupa blada ");
     Window::writeLn("zjadla schaba");
     Window::writeLn("test");
@@ -17,9 +21,10 @@ int main(int argc, char *argv[])
     Window::refresh();
     for (int i=0;i<50;i++)
     {
-        Window::writeLn("0123456789abcdefgh");
+        Window::write("0123456789abcdefgh");
     }
     Window::writeLn("test 4");
+    Window::refresh();
 
     return a.exec();
 }

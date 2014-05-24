@@ -97,15 +97,15 @@ _win_st *Window::window() const
     return _window;
 }
 
-Window::Window(int width, int height, int row, int column)
+Window::Window(int height, int width, int row, int column)
 {
-    _window = newwin(width, height, row, column);
+    _window = newwin(height, width, row, column);
     box(_window, 0, 0);
     _panel = new_panel(_window);
     _windows.insert(_panel, this);
 }
 
-Window::Window(int width, int height) : Window(width, height, (screenWidth()-width)/2, (screenHeight()-height)/2)
+Window::Window(int height, int width) : Window(height, width, (screenHeight()-height)/2, (screenWidth()-width)/2)
 {
 }
 
@@ -191,7 +191,7 @@ int Window::screenHeight()
 }
 
 QStringList lines;
-QStringList splitString(QString msg, int startx, int width=Window::screenWidth())
+QStringList splitStringHard(QString msg, int startx, int width=Window::screenWidth())
 {
     QStringList tmp = msg.split("\n");
     QStringList out;
@@ -215,7 +215,7 @@ void Window::write(QString msg)
         startx= lines.last().length();
         QString tmp = lines.last();
         lines.removeLast();
-        QStringList list = splitString(msg, startx);
+        QStringList list = splitStringHard(msg, startx);
         tmp += list.at(0);
         list.removeFirst();
         lines.append(tmp);
@@ -247,9 +247,38 @@ void Window::refresh()
     {
         x=lines.last().length();
         y=lines.count()-1;
-    }
-    move(y, x);
-    wrefresh(stdscr);
+    }        
     update_panels();
     doupdate();
+    move(y, x);
+    wrefresh(stdscr);
+}
+
+QStringList &Window::splitString(QString msg, int width, int maxHeight)
+{
+    QStringList tmp;
+    QStringList *out=new QStringList();
+    tmp = msg.split("\n");
+    foreach (QString str, tmp) {
+        str.trimmed();
+        while (str.length()>width)
+        {
+            str = str.trimmed();
+            int index = str.left(width).lastIndexOf(" ");
+            if (index==-1)
+            {
+                out->append(str.left(width));
+                str = str.mid(width);
+            }
+            else
+            {
+                out->append(str.left(index));
+                str = str.mid(index);
+            }
+            if (out->count()>maxHeight) return *out;
+        }
+        out->append(str);
+        if (out->count()>maxHeight) return *out;
+    }
+    return *out;
 }

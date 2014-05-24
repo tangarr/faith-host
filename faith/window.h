@@ -3,6 +3,7 @@
 
 #include <QHash>
 #include <QList>
+#include <QStringList>
 
 struct _win_st;
 struct panel;
@@ -21,7 +22,7 @@ class Window
     void addWidget(Widget* widget);
     _win_st *window() const;
 public:
-    Window(int width, int height, int row, int column);
+    Window(int height, int width, int row, int column);
     Window(int width, int height);
     ~Window();
     static void Initialize();
@@ -39,6 +40,7 @@ public:
     static void refresh();
 
     friend class Widget;
+    static QStringList &splitString(QString msg, int width, int maxHeight=-1);
 };
 
 #endif // WINDOW_H
