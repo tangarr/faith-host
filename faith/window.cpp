@@ -117,6 +117,10 @@ Window::~Window()
         del_panel(_panel);
         _panel = nullptr;
     }
+    foreach (Widget* w, _widgets) {
+        delete w;
+    }
+    _widgets.clear();
 }
 
 int Window::width() const
