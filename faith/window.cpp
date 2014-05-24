@@ -132,6 +132,16 @@ int Window::height() const
     else return -1;
 }
 
+void Window::draw()
+{
+    int row = 0;
+    foreach (Widget* w, _widgets) {
+        row = w->draw(row, 1);
+        if (row>height()) break;
+    }
+    wrefresh(_window);
+}
+
 void Window::pressKey(int key)
 {
     switch (key) {

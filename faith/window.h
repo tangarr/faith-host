@@ -26,6 +26,7 @@ public:
     static void Initialize();
     int width() const;
     int height() const;
+    void draw();
 
     virtual void pressKey(int key);
     static void keyPressedEvent(int key);

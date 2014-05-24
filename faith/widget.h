@@ -18,7 +18,7 @@ public:
      */
     Window *parent() const;
     bool isFocusable() const;
-    virtual int draw(int row, int column, int margin=1) = 0;
+    virtual int draw(int row, int margin=1) = 0;
     bool focus(bool focused=true);
     virtual bool keyUpPressed();
     virtual bool keyDownPressed();
