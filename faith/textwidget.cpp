@@ -2,14 +2,14 @@
 #include "window.h"
 #include "ncurses.h"
 
-TextWidget::TextWidget(Window *parent, int height, Algin a) : Widget(parent)
+TextWidget::TextWidget(int height, Algin a) : Widget()
 {
     _height = height;
     _algin = a;
 }
 
 int TextWidget::draw(int row, int margin)
-{
+{    
     int width = parent()->width()-2*margin;
     int rowLeft = parent()->height() - 2 - row;
     if (_height < rowLeft) rowLeft = _height;

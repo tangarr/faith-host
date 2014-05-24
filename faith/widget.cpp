@@ -6,10 +6,24 @@ _win_st *Widget::parentWnd() const
     return parent()->window();
 }
 
-Widget::Widget(Window *parent)
+bool Widget::focusNext()
+{
+    parent()->focusNextWidget();
+}
+
+bool Widget::focusPrev()
+{
+    parent()->focusPrevWidget();
+}
+
+Widget::Widget()
+{
+    _parent = 0;
+}
+
+void Widget::setParent(Window* parent)
 {
     _parent = parent;
-    parent->addWidget(this);
 }
 
 Widget::~Widget()
@@ -24,12 +38,17 @@ Window *Widget::parent() const
 
 bool Widget::isFocusable() const
 {
-    return _isFocuable;
+    return false;
+}
+
+bool Widget::isFocused() const
+{
+    return _isFocused;
 }
 
 bool Widget::focus(bool focused)
 {
-    if (_isFocuable)
+    if (isFocusable())
     {
         _isFocused = focused;
         return true;

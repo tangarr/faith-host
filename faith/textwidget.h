@@ -18,7 +18,7 @@ private:
     int _height;
     Algin _algin;
 public:
-    TextWidget(Window *parent, int height, Algin a=AlginLeft);
+    TextWidget(int height, Algin a=AlginLeft);
     int draw(int row, int margin);
     void setText(QString text);
 };

@@ -6,7 +6,7 @@
 class MenuWidget : public Widget
 {
 public:
-    MenuWidget(Window* parent);
+    MenuWidget();
 };
 
 #endif // MENUWIDGET_H

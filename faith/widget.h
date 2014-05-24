@@ -8,15 +8,18 @@ class Widget
 {
 private:
     Window* _parent;
-    bool    _isFocuable;
     bool    _isFocused;
 protected:
     _win_st *parentWnd() const;
+    bool focusNext();
+    bool focusPrev();
 public:
-    Widget(Window* parent);
+    Widget();
+    void setParent(Window *parent);
     virtual ~Widget();
     Window *parent() const;
-    bool isFocusable() const;
+    virtual bool isFocusable() const;
+    bool isFocused() const;
     virtual int draw(int row, int margin=1) = 0;
     bool focus(bool focused=true);
     virtual bool keyUpPressed();

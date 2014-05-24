@@ -1,5 +1,5 @@
 #include "menuwidget.h"
 
-MenuWidget::MenuWidget(Window* parent) : Widget(parent)
+MenuWidget::MenuWidget() : Widget()
 {
 }

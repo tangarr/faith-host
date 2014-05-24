@@ -21,13 +21,7 @@ int main(int argc, char *argv[])
     {
         Window::write("0123456789abcdefgh");
     }
-    Window::writeLn("test 4");    
-    getch();
-    Window::showMessageBox("Uwaga", "Testuje sobie\njakas wiadomosc tekstowa", {"OK"});
-    getch();
-    endwin();
-
-
-
+    Window::writeLn("test 4");
+    Window::showMessageBox("Uwaga", "Testuje sobie\njakas wiadomosc tekstowa", {"OK", "Yes", "No", "Cancel", "Return", "Test", "Fuck"});
     return a.exec();
 }
