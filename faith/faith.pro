@@ -17,7 +17,10 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     window.cpp \
-    widget.cpp
+    widget.cpp \
+    textwidget.cpp \
+    buttonboxwidget.cpp \
+    menuwidget.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../faith-core/release/ -lfaith-core
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../faith-core/debug/ -lfaith-core
@@ -40,4 +43,7 @@ OTHER_FILES += \
 
 HEADERS += \
     window.h \
-    widget.h
+    widget.h \
+    textwidget.h \
+    buttonboxwidget.h \
+    menuwidget.h

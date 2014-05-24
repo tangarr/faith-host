@@ -1,6 +1,11 @@
 #include "widget.h"
 #include "window.h"
 
+_win_st *Widget::parentWnd() const
+{
+    return parent()->window();
+}
+
 Widget::Widget(Window *parent)
 {
     _parent = parent;

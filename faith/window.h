@@ -19,6 +19,7 @@ class Window
     bool focusPrevWidget();
     static QHash<panel*, Window*> _windows;
     void addWidget(Widget* widget);
+    _win_st *window() const;
 public:
     Window(int width, int height, int row, int column);
     Window(int width, int height);

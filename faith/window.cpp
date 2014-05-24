@@ -92,6 +92,11 @@ void Window::addWidget(Widget *widget)
     }
 }
 
+_win_st *Window::window() const
+{
+    return _window;
+}
+
 Window::Window(int width, int height, int row, int column)
 {
     _window = newwin(width, height, row, column);
