@@ -57,7 +57,7 @@ public:
     static void refresh();
     friend class Widget;
     static QStringList &splitString(QString msg, int width, int maxHeight=-1);
-    static int showMessageBox(QString title, QString message, QStringList buttons);
+    static int showMessageBox(QString title, QString message, QStringList buttons=QStringList({"OK"}));
     static int showComuterLabWindow(const QStringList &laboratories);
     static HostConfig* showConfigForm(QString _mac, QString _lab, QString _ip, QString _hostname);
     static int getCh();

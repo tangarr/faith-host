@@ -14,9 +14,7 @@ private:
     QString _value;
     bool _readOnly;
 public:
-    FormWidget(QString name, int nameWidth, QString pattern="");
-
-public:
+    FormWidget(QString name, int nameWidth, QString pattern=""); 
     bool isFocusable() const;
     int draw(int row, int margin);
     bool keyPressed(int key);

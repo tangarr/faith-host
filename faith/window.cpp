@@ -111,7 +111,7 @@ _win_st *Window::window() const
     return _window;
 }
 
-int Window::showMessageBox(QString title, QString message, QStringList buttons=QStringList({"OK"}))
+int Window::showMessageBox(QString title, QString message, QStringList buttons)
 {
     int out = -1;
     int width = screenWidth()/2;
@@ -170,13 +170,14 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
 {
     Window* wnd = new Window(7, screenWidth()/2);
     wnd->title = "Host configuration";
+
     FormWidget *hostname, *ip, *lab, *mac;
     int col_width = 12;
 
     mac = new FormWidget("mac address", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
     mac->setReadOnly(true);
     mac->setValue(_mac);
-    wnd->addWidget(mac);    
+    wnd->addWidget(mac);
 
     lab = new FormWidget("computer lab", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
     lab->setReadOnly(true);
@@ -196,7 +197,7 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
 
     wnd->draw();
     refresh();
-    HostConfig* out=nullptr;
+    HostConfig* out=nullptr;    
     while (true)
     {
         int c = Window::getCh();
@@ -213,6 +214,10 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
             else
             {
                 out=new HostConfig(HostConfig::ipFromString(ip->value()),mac->value(), lab->value(), hostname->value());
+                ip = 0;
+                mac=0;
+                lab=0;
+                hostname=0;
                 break;
             }
         }
@@ -221,6 +226,8 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
             break;
         }
     }
+
+    Window::getCh();
     delete wnd;
     refresh();
     return out;
@@ -247,21 +254,21 @@ Window::Window(int height, int width) : Window(height, width, (screenHeight()-he
 
 Window::~Window()
 {
-    if (_window)
-    {
-        delwin(_window);
-        _window = nullptr;
+    foreach (Widget* w, _widgets) {
+        delete w;
     }
+    _widgets.clear();
     if (_panel)
     {
         _windows.remove(_panel);
         del_panel(_panel);
         _panel = nullptr;
     }
-    foreach (Widget* w, _widgets) {
-        delete w;
+    if (_window)
+    {
+        delwin(_window);
+        _window = nullptr;
     }
-    _widgets.clear();
 }
 
 int Window::width() const
