@@ -20,7 +20,8 @@ SOURCES += main.cpp \
     widget.cpp \
     textwidget.cpp \
     buttonboxwidget.cpp \
-    menuwidget.cpp
+    menuwidget.cpp \
+    formwidget.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../faith-core/release/ -lfaith-core
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../faith-core/debug/ -lfaith-core
@@ -46,4 +47,5 @@ HEADERS += \
     widget.h \
     textwidget.h \
     buttonboxwidget.h \
-    menuwidget.h
+    menuwidget.h \
+    formwidget.h

@@ -19,6 +19,7 @@ bool Widget::focusPrev()
 Widget::Widget()
 {
     _parent = 0;
+    _isFocused = false;
 }
 
 void Widget::setParent(Window* parent)

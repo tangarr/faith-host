@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
     Window::writeLn("test 4");
     //Window::showMessageBox("Uwaga", "Testuje sobie\njakas wiadomosc tekstowa", {"OK", "Yes", "No", "Cancel", "Return", "Test", "Fuck"});
     QStringList lab({"jeden", "dwa", "trzy", "laba"});
-    Window::showComuterLabWindow(lab);
+    //Window::showComuterLabWindow(lab);
+    Window::showConfigForm("mac","laba","192.168.0.1", "laba1");
+
+
     return a.exec();
 }

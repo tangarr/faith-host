@@ -7,6 +7,7 @@
 #include "textwidget.h"
 #include "buttonboxwidget.h"
 #include "menuwidget.h"
+#include "formwidget.h"
 
 QHash<panel*, Window*> Window::_windows;
 
@@ -20,6 +21,8 @@ void Window::Initialize()
     init_pair((short)ColorSelected, COLOR_BLACK, COLOR_GREEN);
     init_pair((short)ColorMenuActive,   COLOR_BLACK, COLOR_BLUE);
     init_pair((short)ColorMenuInactive, COLOR_BLACK, COLOR_WHITE);
+    init_pair((short)ColorErrorText, COLOR_RED, COLOR_BLACK);
+    init_pair((short)ColorErrorField, COLOR_BLACK, COLOR_RED);
 }
 
 bool Window::focusNextWidget(bool tabPressed)
@@ -94,7 +97,11 @@ void Window::addWidget(Widget *widget)
     widget->setParent(this);
     if (!_activeWidget)
     {
-        if (widget->isFocusable()) _activeWidget = widget;
+        if (widget->isFocusable())
+        {
+            _activeWidget = widget;
+            widget->focus(true);
+        }
     }
 }
 
@@ -156,6 +163,45 @@ int Window::showComuterLabWindow(const QStringList& laboratories)
     delete wnd;
     refresh();
     return out;
+}
+
+void Window::showConfigForm(QString _mac, QString _lab, QString _ip, QString _hostname)
+{
+    Window* wnd = new Window(7, screenWidth()/2);
+    wnd->title = "Host configuration";
+    FormWidget *hostname, *ip, *lab, *mac;
+    int col_width = 12;
+
+    mac = new FormWidget("mac address", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
+    mac->setReadOnly(true);
+    mac->setValue(_mac);
+    wnd->addWidget(mac);    
+
+    lab = new FormWidget("computer lab", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
+    lab->setReadOnly(true);
+    lab->setValue(_lab);
+    wnd->addWidget(lab);
+
+    ip = new FormWidget("ip address", col_width, "(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9]\\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])");
+    ip->setValue(_ip);
+    wnd->addWidget(ip);
+
+    hostname = new FormWidget("hostaname", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
+    hostname->setValue(_hostname);
+    wnd->addWidget(hostname);
+    QStringList _buttons = QStringList({"Save", "Back"});
+    ButtonBoxWidget* buttons = new ButtonBoxWidget(_buttons, 10);
+    wnd->addWidget(buttons);
+
+    wnd->draw();
+    refresh();
+    while (true)
+    {
+        int c = Window::getCh();
+        if (wnd->pressKey(c)) wnd->draw();
+    }
+    delete wnd;
+    refresh();
 }
 
 int Window::getCh()
@@ -289,6 +335,7 @@ QStringList splitStringHard(QString msg, int startx, int width=Window::screenWid
 
 void Window::write(QString msg)
 {
+    msg = msg.replace("%","%%");
     int startx = 0;
     if (!lines.empty())
     {
