@@ -2,7 +2,6 @@
 #include <QDebug>
 
 #include "window.h"
-#include "ncurses.h"
 
 #include <QStringList>
 

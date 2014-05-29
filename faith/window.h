@@ -4,6 +4,7 @@
 #include <QHash>
 #include <QList>
 #include <QStringList>
+#include "hostconfig.h"
 
 struct _win_st;
 struct panel;
@@ -58,7 +59,7 @@ public:
     static QStringList &splitString(QString msg, int width, int maxHeight=-1);
     static int showMessageBox(QString title, QString message, QStringList buttons);
     static int showComuterLabWindow(const QStringList &laboratories);
-    static void showConfigForm(QString _mac, QString _lab, QString _ip, QString _hostname);
+    static HostConfig* showConfigForm(QString _mac, QString _lab, QString _ip, QString _hostname);
     static int getCh();
 };
 

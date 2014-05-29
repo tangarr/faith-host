@@ -9,6 +9,7 @@
 #include "menuwidget.h"
 #include "formwidget.h"
 
+
 QHash<panel*, Window*> Window::_windows;
 
 void Window::Initialize()
@@ -110,7 +111,7 @@ _win_st *Window::window() const
     return _window;
 }
 
-int Window::showMessageBox(QString title, QString message, QStringList buttons)
+int Window::showMessageBox(QString title, QString message, QStringList buttons=QStringList({"OK"}))
 {
     int out = -1;
     int width = screenWidth()/2;
@@ -165,7 +166,7 @@ int Window::showComuterLabWindow(const QStringList& laboratories)
     return out;
 }
 
-void Window::showConfigForm(QString _mac, QString _lab, QString _ip, QString _hostname)
+HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QString _hostname)
 {
     Window* wnd = new Window(7, screenWidth()/2);
     wnd->title = "Host configuration";
@@ -195,13 +196,34 @@ void Window::showConfigForm(QString _mac, QString _lab, QString _ip, QString _ho
 
     wnd->draw();
     refresh();
+    HostConfig* out=nullptr;
     while (true)
     {
         int c = Window::getCh();
         if (wnd->pressKey(c)) wnd->draw();
+        if (buttons->buttonPressed()==0)
+        {
+            QStringList errors;
+            if (!ip->isValid()) errors.append("ip address is not valid");
+            if (!hostname->isValid()) errors.append("hostname is not valid");
+            if (errors.count() > 0)
+            {
+                showMessageBox("Error", errors.join("\n"));
+            }
+            else
+            {
+                out=new HostConfig(HostConfig::ipFromString(ip->value()),mac->value(), lab->value(), hostname->value());
+                break;
+            }
+        }
+        else if (buttons->buttonPressed()==1)
+        {
+            break;
+        }
     }
     delete wnd;
     refresh();
+    return out;
 }
 
 int Window::getCh()
