@@ -4,6 +4,8 @@
 #include "window.h"
 #include "ncurses.h"
 
+#include <QStringList>
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -22,6 +24,8 @@ int main(int argc, char *argv[])
         Window::write("0123456789abcdefgh");
     }
     Window::writeLn("test 4");
-    Window::showMessageBox("Uwaga", "Testuje sobie\njakas wiadomosc tekstowa", {"OK", "Yes", "No", "Cancel", "Return", "Test", "Fuck"});
+    //Window::showMessageBox("Uwaga", "Testuje sobie\njakas wiadomosc tekstowa", {"OK", "Yes", "No", "Cancel", "Return", "Test", "Fuck"});
+    QStringList lab({"jeden", "dwa", "trzy", "laba"});
+    Window::showComuterLabWindow(lab);
     return a.exec();
 }

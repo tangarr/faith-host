@@ -16,7 +16,9 @@ public:
     enum Color
     {
         ColorNone,
-        ColorWhiteOnBlack
+        ColorSelected,
+        ColorMenuInactive,
+        ColorMenuActive
     };
 
 private:
@@ -34,7 +36,7 @@ private:
 public:
     Window(int height, int width, int row, int column);
     Window(int width, int height);
-    ~Window();
+    virtual ~Window();
 
     int width() const;
     int height() const;
@@ -53,6 +55,7 @@ public:
     friend class Widget;
     static QStringList &splitString(QString msg, int width, int maxHeight=-1);
     static int showMessageBox(QString title, QString message, QStringList buttons);
+    static int showComuterLabWindow(const QStringList &laboratories);
     static int getCh();
 };
 

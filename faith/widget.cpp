@@ -8,12 +8,12 @@ _win_st *Widget::parentWnd() const
 
 bool Widget::focusNext()
 {
-    parent()->focusNextWidget();
+    return parent()->focusNextWidget();
 }
 
 bool Widget::focusPrev()
 {
-    parent()->focusPrevWidget();
+    return parent()->focusPrevWidget();
 }
 
 Widget::Widget()

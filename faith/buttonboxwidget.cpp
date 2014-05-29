@@ -47,7 +47,7 @@ int ButtonBoxWidget::draw(int row, int margin)
         }
         int x = startx+iter*(_buttonWidth+spacing);
         QString but = "|"+centerString(str, _buttonWidth-2)+"|";
-        if (colored) parent()->colorOn(Window::ColorWhiteOnBlack);
+        if (colored) parent()->colorOn(Window::ColorSelected);
         mvwprintw(parentWnd(), row+y, x, but.toStdString().c_str());
         if (colored) parent()->colorOff();
         iter++;

@@ -6,6 +6,7 @@
 #include <QStringList>
 #include "textwidget.h"
 #include "buttonboxwidget.h"
+#include "menuwidget.h"
 
 QHash<panel*, Window*> Window::_windows;
 
@@ -16,7 +17,9 @@ void Window::Initialize()
     noecho();
     raw();    
     start_color();
-    init_pair((short)ColorWhiteOnBlack, COLOR_BLACK, COLOR_WHITE);
+    init_pair((short)ColorSelected, COLOR_BLACK, COLOR_GREEN);
+    init_pair((short)ColorMenuActive,   COLOR_BLACK, COLOR_BLUE);
+    init_pair((short)ColorMenuInactive, COLOR_BLACK, COLOR_WHITE);
 }
 
 bool Window::focusNextWidget(bool tabPressed)
@@ -127,7 +130,32 @@ int Window::showMessageBox(QString title, QString message, QStringList buttons)
     }
     delete wnd;
     refresh();
-    return 0;
+    return out;
+}
+
+int Window::showComuterLabWindow(const QStringList& laboratories)
+{
+    int out = -1;
+    int height = laboratories.count()+2;
+    if (height>Window::screenHeight()-4) height = Window::screenHeight()-4;
+    Window* wnd = new Window(height,Window::screenWidth()/2);
+    wnd->title = "Select computer lab";
+    MenuWidget* menu = new MenuWidget(height-2, laboratories);
+    wnd->addWidget(menu);
+    wnd->draw();
+    while (true)
+    {
+        int c = Window::getCh();
+        if (wnd->pressKey(c)) wnd->draw();
+        if (menu->enterPressed())
+        {
+            out = menu->selectedIndex();
+            break;
+        }
+    }
+    delete wnd;
+    refresh();
+    return out;
 }
 
 int Window::getCh()
