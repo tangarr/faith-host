@@ -174,7 +174,7 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
     FormWidget *hostname, *ip, *lab, *mac;
     int col_width = 12;
 
-    mac = new FormWidget("mac address", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
+    mac = new FormWidget("mac address", col_width, "[a-zA-Z0-9-:]*");
     mac->setReadOnly(true);
     mac->setValue(_mac);
     wnd->addWidget(mac);
@@ -188,7 +188,7 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
     ip->setValue(_ip);
     wnd->addWidget(ip);
 
-    hostname = new FormWidget("hostaname", col_width, "[a-zA-Z][a-zA-Z0-9-]*");
+    hostname = new FormWidget("hostaname", col_width, "[a-zA-Z]([a-zA-Z0-9-.]*[a-zA-Z0-9])*");
     hostname->setValue(_hostname);
     wnd->addWidget(hostname);
     QStringList _buttons = QStringList({"Save", "Back"});
@@ -226,8 +226,6 @@ HostConfig *Window::showConfigForm(QString _mac, QString _lab, QString _ip, QStr
             break;
         }
     }
-
-    Window::getCh();
     delete wnd;
     refresh();
     return out;

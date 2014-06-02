@@ -8,6 +8,11 @@
 #include "faithmessage.h"
 #include "fdstringlist.h"
 #include "fdproposedip.h"
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+
+const char* host_database="/host/host.db";
 
 bool connectSocket(QTcpSocket* socket, QString server, quint16 port)
 {
@@ -32,7 +37,7 @@ void disconnectSocket(QTcpSocket* socket)
         Window::writeLn("disconected from server");
 }
 
-FaithMessage* sendMessage(QTcpSocket* socket, FaithMessage& message, Faithcore::MessageCode expectedResponse)
+FaithMessage* sendMessage(QTcpSocket* socket, FaithMessage& message, QList<Faithcore::MessageCode> expectedResponses)
 {
     Window::writeLn("Sending message: "+Faithcore::MessageCodeToString(message.getMessageCode()));
     message.send(socket);
@@ -45,7 +50,15 @@ FaithMessage* sendMessage(QTcpSocket* socket, FaithMessage& message, Faithcore::
     msg->recive(socket);
     Window::writeLn("Recived message: "+Faithcore::MessageCodeToString(msg->getMessageCode()));
 
-    if (msg->getMessageCode()!=expectedResponse)
+    bool wrong_message = true;
+    foreach (Faithcore::MessageCode msg_code , expectedResponses) {
+        if (msg->getMessageCode()==msg_code)
+        {
+            wrong_message = false;
+            break;
+        }
+    }
+    if (wrong_message)
     {
         Window::showMessageBox("ERROR", "Recived wrong message");
         delete msg;
@@ -89,11 +102,34 @@ int main(int argc, char *argv[])
         }
     }
 
-    QTcpSocket *socket = new QTcpSocket();
+    //-------------------------------RETRIVING HW ADDRESS FROM DATABASE-------------------------------
+    QString mac;
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(host_database);
+    if (db.open())
+    {
+        QSqlQuery q("select value from general where key='mac'");
+        if (q.next())
+        {
+            mac = q.value(0).toString();
+        }
+        else
+        {
+            Window::showMessageBox("ERROR", "Database "+QString(host_database)+" doesn't contain mac addres value\n"+q.lastError().text());
+            return -1;
+        }
+    }
+    else
+    {
+        Window::showMessageBox("ERROR", "Can't open host database\n"+QString(host_database));
+        return -1;
+    }
     //-------------------------------FIRST-CONNECTION-------------------------------------------------
+    QTcpSocket *socket = new QTcpSocket();
     if (!connectSocket(socket,QString(server_char), port)) return -1;
-    QStringList laboratories;
-    FaithMessage *msg = sendMessage(socket, FaithMessage::MsgGetLabList(), Faithcore::LAB_LIST);
+    QStringList laboratories;    
+    //socket->
+    FaithMessage *msg = sendMessage(socket, FaithMessage::MsgGetLabListOrHostInfo(mac), {Faithcore::HOST_INFO, Faithcore::LAB_LIST});
     if (!msg) return -1;
     else
     {
@@ -115,7 +151,7 @@ int main(int argc, char *argv[])
     if (!connectSocket(socket,QString(server_char), port)) return -1;
     QString lab_name = laboratories.at(lab_index);
     QString ip, hostname;
-    msg = sendMessage(socket,FaithMessage::MsgReserveIp(lab_name), Faithcore::PROPOSED_IP);
+    msg = sendMessage(socket,FaithMessage::MsgReserveIp(lab_name), {Faithcore::PROPOSED_IP});
     if (msg)
     {
         FdProposedIp* proposal = static_cast<FdProposedIp*>(msg->getData());
@@ -130,7 +166,21 @@ int main(int argc, char *argv[])
     disconnectSocket(socket);
     //------------------------------THIRD-CONNECTION----------------------------------------------------
 
-    HostConfig *cnf = Window::showConfigForm("mac",lab_name,ip, hostname);
+    HostConfig *cnf = Window::showConfigForm(mac,lab_name,ip, hostname);
+    QSqlQuery querry;
+    querry.prepare("insert into general values ('ip',?)");
+    querry.bindValue(0, HostConfig::ipFromInt32(cnf->ip()));
+    if (querry.exec())
+    {
+        Window::writeLn("Writen ip into database");
+    }
+    querry.prepare("insert into general values ('hostname',?)");
+    querry.bindValue(0, cnf->hostname());
+    if (querry.exec())
+    {
+        Window::writeLn("Writen hostname into database");
+    }
+
     //Window::getCh();
     //delete cnf;
 
