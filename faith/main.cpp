@@ -11,6 +11,8 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
+#include "fdstring.h"
+#include "fdhostinfo.h"
 
 const char* host_database="/host/host.db";
 
@@ -60,7 +62,13 @@ FaithMessage* sendMessage(QTcpSocket* socket, FaithMessage& message, QList<Faith
     }
     if (wrong_message)
     {
-        Window::showMessageBox("ERROR", "Recived wrong message");
+        if (msg->getMessageCode()==Faithcore::ERROR)
+        {
+            FdString* str = static_cast<FdString*>(msg->getData());
+            if (str) Window::showMessageBox("ERROR", str->value());
+            else Window::showMessageBox("ERROR", "Recived ERROR message");
+        }
+        else Window::showMessageBox("ERROR", "Recived wrong message");
         delete msg;
         return 0;
     }
@@ -126,12 +134,16 @@ int main(int argc, char *argv[])
     }
     //-------------------------------FIRST-CONNECTION-------------------------------------------------
     QTcpSocket *socket = new QTcpSocket();
-    if (!connectSocket(socket,QString(server_char), port)) return -1;
-    QStringList laboratories;    
-    //socket->
+    if (!connectSocket(socket,QString(server_char), port)) return -1;    
     FaithMessage *msg = sendMessage(socket, FaithMessage::MsgGetLabListOrHostInfo(mac), {Faithcore::HOST_INFO, Faithcore::LAB_LIST});
+    disconnectSocket(socket);
+
     if (!msg) return -1;
-    else
+
+    HostConfig *cnf = 0;
+    QStringList laboratories;
+
+    if (msg->getMessageCode()==Faithcore::LAB_LIST)
     {
         FdStringList *list = static_cast<FdStringList*>(msg->getData());
         if (!list)
@@ -144,29 +156,56 @@ int main(int argc, char *argv[])
             laboratories.append(list->at(i));
         }
         delete msg;
-    }
-    disconnectSocket(socket);
-    //-------------------------------SECOND-CONNECTION-------------------------------------------------
-    int lab_index = Window::showComuterLabWindow(laboratories);
-    if (!connectSocket(socket,QString(server_char), port)) return -1;
-    QString lab_name = laboratories.at(lab_index);
-    QString ip, hostname;
-    msg = sendMessage(socket,FaithMessage::MsgReserveIp(lab_name), {Faithcore::PROPOSED_IP});
-    if (msg)
-    {
-        FdProposedIp* proposal = static_cast<FdProposedIp*>(msg->getData());
-        if (!proposal)
+        while (true)
         {
-            Window::showMessageBox("ERROR", "Can't extract ProposedIp from message");
+            int lab_index = Window::showComuterLabWindow(laboratories);
+            if (!connectSocket(socket,QString(server_char), port)) return -1;
+            QString lab_name = laboratories.at(lab_index);
+            QString ip, hostname;
+            msg = sendMessage(socket,FaithMessage::MsgReserveIp(lab_name), {Faithcore::PROPOSED_IP});
+            disconnectSocket(socket);
+            if (!msg) return -1;
+
+            FdProposedIp* proposal = static_cast<FdProposedIp*>(msg->getData());
+            if (!proposal)
+            {
+                Window::showMessageBox("ERROR", "Can't extract ProposedIp from message");
+                return -1;
+            }
+            ip = HostConfig::ipFromInt32(proposal->ip());
+            hostname = proposal->hostname();
+            delete msg;
+
+            cnf = Window::showConfigForm(mac,lab_name,ip, hostname);
+
+            if (!connectSocket(socket,QString(server_char), port)) return -1;
+            msg = sendMessage(socket, FaithMessage::MsgAcceptIp(cnf->lab(), cnf->hostname(), cnf->ip(), cnf->mac()), {Faithcore::OK, Faithcore::ERROR});
+            disconnectSocket(socket);
+            if (!msg) return -1;
+
+            if (msg->getMessageCode() == Faithcore::ERROR)
+            {
+                QString error;
+                FdString *str = static_cast<FdString*>(msg->getData());
+                if (str) error = "\n"+str->value();
+                Window::showMessageBox("ERROR", "Can't Accept selected configuration"+error);
+            }
+            else break;
+        }
+    }
+    else
+    {
+        FdHostInfo* hinfo = static_cast<FdHostInfo*>(msg->getData());
+        if (!hinfo)
+        {
+            Window::showMessageBox("ERROR", "Can't extract HostInfo from message");
             return -1;
         }
-        ip = HostConfig::ipFromInt32(proposal->ip());
-        hostname = proposal->hostname();
+        cnf = new HostConfig(hinfo->ip(), hinfo->mac(), hinfo->lab(), hinfo->hostname());
+        delete msg;
     }
-    disconnectSocket(socket);
-    //------------------------------THIRD-CONNECTION----------------------------------------------------
 
-    HostConfig *cnf = Window::showConfigForm(mac,lab_name,ip, hostname);
+    //------------------------------PREAPARE-DATABASE----------------------------------------------------
     QSqlQuery querry;
     querry.prepare("insert into general values ('ip',?)");
     querry.bindValue(0, HostConfig::ipFromInt32(cnf->ip()));
@@ -180,9 +219,22 @@ int main(int argc, char *argv[])
     {
         Window::writeLn("Writen hostname into database");
     }
-
-    //Window::getCh();
-    //delete cnf;
-
-    return a.exec();
+    db.close();
+    //------------------------------FINAL-CONNECTION------------------------------------------------------
+    if (!connectSocket(socket,QString(server_char), port)) return -1;
+    Window::writeLn("Sending host configuration to server");
+    msg = sendMessage(socket, FaithMessage::MsgSendFile(host_database), {Faithcore::OK, Faithcore::ERROR});
+    disconnectSocket(socket);
+    if (!msg) Window::showMessageBox("ERROR", "Unknown Error");
+    else
+    {
+        if (msg->getMessageCode()==Faithcore::OK) Window::showMessageBox("SUCCES", "Host Configuration succesfull sended to server");
+        else
+        {
+            FdString* str = static_cast<FdString*>(msg->getData());
+            if (str) Window::showMessageBox("ERROR", str->value());
+            else Window::showMessageBox("ERROR", "Recived Error\nCan't extract error message from message");
+        }
+    }
+    return 0;
 }
