@@ -219,6 +219,12 @@ int main(int argc, char *argv[])
     {
         Window::writeLn("Writen hostname into database");
     }
+    querry.prepare("insert into general values ('lab',?)");
+    querry.bindValue(0, cnf->lab());
+    if (querry.exec())
+    {
+        Window::writeLn("Writen lab into database");
+    }
     db.close();
     //------------------------------FINAL-CONNECTION------------------------------------------------------
     if (!connectSocket(socket,QString(server_char), port)) return -1;
