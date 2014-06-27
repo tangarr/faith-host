@@ -49,6 +49,7 @@ public:
     virtual bool pressKey(int key);
 
     static void Initialize();
+    static void Destroy();
     static void keyPressedEvent(int key);
     static int screenWidth();
     static int screenHeight();

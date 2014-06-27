@@ -19,7 +19,7 @@ const char* host_database="/host/host.db";
 bool connectSocket(QTcpSocket* socket, QString server, quint16 port)
 {
     socket->connectToHost(server, port);
-    Window::write("Connecting to "+server+"... ");
+    Window::write("Connecting to "+server+":"+QString::number(port)+"...");
     socket->waitForConnected();
     if (socket->state()==QTcpSocket::ConnectedState)
     {
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     Window::Initialize();
     Window::refresh();
 
-    /*
+    //*
     char* server_char = getenv("SERVER");
     char* port_char = getenv("FAITH_PORT");
     /*/
@@ -92,13 +92,19 @@ int main(int argc, char *argv[])
     if (!server_char)
     {
         Window::showMessageBox("ERROR", "Can't find variable 'SERVER' in environment list");
+        Window::Destroy();
         return -1;
+    }
+    else
+    {
+        Window::writeLn("SERVER: "+QString(server_char));
     }
     if (!port_char)
     {
         Window::showMessageBox("ERROR", "Can't find variable 'FAITH_PORT' in environment list");
+        Window::Destroy();
         return -1;
-    }
+    }    
     else
     {
         bool conversion_ok = false;
@@ -106,6 +112,7 @@ int main(int argc, char *argv[])
         if (!conversion_ok)
         {
             Window::showMessageBox("ERROR", "Can't convert variable 'FAITH_PORT' to unsigned short");
+            Window::Destroy();
             return -1;
         }
     }
@@ -124,12 +131,14 @@ int main(int argc, char *argv[])
         else
         {
             Window::showMessageBox("ERROR", "Database "+QString(host_database)+" doesn't contain mac addres value\n"+q.lastError().text());
+            Window::Destroy();
             return -1;
         }
     }
     else
     {
         Window::showMessageBox("ERROR", "Can't open host database\n"+QString(host_database));
+        Window::Destroy();
         return -1;
     }
     //-------------------------------FIRST-CONNECTION-------------------------------------------------
@@ -138,7 +147,11 @@ int main(int argc, char *argv[])
     FaithMessage *msg = sendMessage(socket, FaithMessage::MsgGetLabListOrHostInfo(mac), {Faithcore::HOST_INFO, Faithcore::LAB_LIST});
     disconnectSocket(socket);
 
-    if (!msg) return -1;
+    if (!msg)
+    {
+        Window::Destroy();
+        return -1;
+    }
 
     HostConfig *cnf = 0;
     QStringList laboratories;
@@ -149,6 +162,7 @@ int main(int argc, char *argv[])
         if (!list)
         {
             Window::showMessageBox("ERROR", "Can't extract StringList from message");
+            Window::Destroy();
             return -1;
         }
         for (int i=0;i<list->count();i++)
@@ -159,7 +173,11 @@ int main(int argc, char *argv[])
         while (true)
         {
             int lab_index = Window::showComuterLabWindow(laboratories);
-            if (!connectSocket(socket,QString(server_char), port)) return -1;
+            if (!connectSocket(socket,QString(server_char), port))
+            {
+                Window::Destroy();
+                return -1;
+            }
             QString lab_name = laboratories.at(lab_index);
             QString ip, hostname;
             msg = sendMessage(socket,FaithMessage::MsgReserveIp(lab_name), {Faithcore::PROPOSED_IP});
@@ -170,6 +188,7 @@ int main(int argc, char *argv[])
             if (!proposal)
             {
                 Window::showMessageBox("ERROR", "Can't extract ProposedIp from message");
+                Window::Destroy();
                 return -1;
             }
             ip = HostConfig::ipFromInt32(proposal->ip());
@@ -178,10 +197,18 @@ int main(int argc, char *argv[])
 
             cnf = Window::showConfigForm(mac,lab_name,ip, hostname);
 
-            if (!connectSocket(socket,QString(server_char), port)) return -1;
+            if (!connectSocket(socket,QString(server_char), port))
+            {
+                Window::Destroy();
+                return -1;
+            }
             msg = sendMessage(socket, FaithMessage::MsgAcceptIp(cnf->lab(), cnf->hostname(), cnf->ip(), cnf->mac()), {Faithcore::OK, Faithcore::ERROR});
             disconnectSocket(socket);
-            if (!msg) return -1;
+            if (!msg)
+            {
+                Window::Destroy();
+                return -1;
+            }
 
             if (msg->getMessageCode() == Faithcore::ERROR)
             {
@@ -199,6 +226,7 @@ int main(int argc, char *argv[])
         if (!hinfo)
         {
             Window::showMessageBox("ERROR", "Can't extract HostInfo from message");
+            Window::Destroy();
             return -1;
         }
         cnf = new HostConfig(hinfo->ip(), hinfo->mac(), hinfo->lab(), hinfo->hostname());
@@ -242,5 +270,6 @@ int main(int argc, char *argv[])
             else Window::showMessageBox("ERROR", "Recived Error\nCan't extract error message from message");
         }
     }
+    Window::Destroy();
     return 0;
 }

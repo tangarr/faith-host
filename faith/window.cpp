@@ -26,6 +26,11 @@ void Window::Initialize()
     init_pair((short)ColorErrorField, COLOR_BLACK, COLOR_RED);
 }
 
+void Window::Destroy()
+{
+    endwin();
+}
+
 bool Window::focusNextWidget(bool tabPressed)
 {
     if (_activeWidget==nullptr) return false;
