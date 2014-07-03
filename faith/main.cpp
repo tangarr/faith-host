@@ -75,48 +75,8 @@ FaithMessage* sendMessage(QTcpSocket* socket, FaithMessage& message, QList<Faith
     else return msg;
 }
 
-int main(int argc, char *argv[])
+int hostInfo(char* server_char, quint16 port)
 {
-    QCoreApplication a(argc, argv);
-    Window::Initialize();
-    Window::refresh();
-
-    //*
-    char* server_char = getenv("SERVER");
-    char* port_char = getenv("FAITH_PORT");
-    /*/
-    char* server_char = (char*)"127.0.0.1";
-    char* port_char = (char*)"8100";
-    //*/
-    quint16 port = 0;
-    if (!server_char)
-    {
-        Window::showMessageBox("ERROR", "Can't find variable 'SERVER' in environment list");
-        Window::Destroy();
-        return -1;
-    }
-    else
-    {
-        Window::writeLn("SERVER: "+QString(server_char));
-    }
-    if (!port_char)
-    {
-        Window::showMessageBox("ERROR", "Can't find variable 'FAITH_PORT' in environment list");
-        Window::Destroy();
-        return -1;
-    }    
-    else
-    {
-        bool conversion_ok = false;
-        port = QString(port_char).toUShort(&conversion_ok);
-        if (!conversion_ok)
-        {
-            Window::showMessageBox("ERROR", "Can't convert variable 'FAITH_PORT' to unsigned short");
-            Window::Destroy();
-            return -1;
-        }
-    }
-
     //-------------------------------RETRIVING HW ADDRESS FROM DATABASE-------------------------------
     QString mac;
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -143,7 +103,11 @@ int main(int argc, char *argv[])
     }
     //-------------------------------FIRST-CONNECTION-------------------------------------------------
     QTcpSocket *socket = new QTcpSocket();
-    if (!connectSocket(socket,QString(server_char), port)) return -1;    
+    if (!connectSocket(socket,QString(server_char), port))
+    {
+        Window::Destroy();
+        return -1;
+    }
     FaithMessage *msg = sendMessage(socket, FaithMessage::MsgGetLabListOrHostInfo(mac), {Faithcore::HOST_INFO, Faithcore::LAB_LIST});
     disconnectSocket(socket);
 
@@ -182,7 +146,11 @@ int main(int argc, char *argv[])
             QString ip, hostname;
             msg = sendMessage(socket,FaithMessage::MsgReserveIp(lab_name), {Faithcore::PROPOSED_IP});
             disconnectSocket(socket);
-            if (!msg) return -1;
+            if (!msg)
+            {
+                Window::Destroy();
+                return -1;
+            }
 
             FdProposedIp* proposal = static_cast<FdProposedIp*>(msg->getData());
             if (!proposal)
@@ -255,7 +223,11 @@ int main(int argc, char *argv[])
     }
     db.close();
     //------------------------------FINAL-CONNECTION------------------------------------------------------
-    if (!connectSocket(socket,QString(server_char), port)) return -1;
+    if (!connectSocket(socket,QString(server_char), port))
+    {
+        Window::Destroy();
+        return -1;
+    }
     Window::writeLn("Sending host configuration to server");
     msg = sendMessage(socket, FaithMessage::MsgSendFile(host_database), {Faithcore::OK, Faithcore::ERROR});
     disconnectSocket(socket);
@@ -272,4 +244,108 @@ int main(int argc, char *argv[])
     }
     Window::Destroy();
     return 0;
+}
+
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
+    char* server_char = getenv("SERVER");
+    char* port_char = getenv("FAITH_PORT");
+
+    Window::Initialize();
+    Window::refresh();
+
+    quint16 port = 0;
+    if (!server_char)
+    {
+        Window::showMessageBox("ERROR", "Can't find variable 'SERVER' in environment list");
+        Window::Destroy();
+        return -1;
+    }
+    else
+    {
+        Window::writeLn("SERVER: "+QString(server_char));
+    }
+    if (!port_char)
+    {
+        Window::showMessageBox("ERROR", "Can't find variable 'FAITH_PORT' in environment list");
+        Window::Destroy();
+        return -1;
+    }
+    else
+    {
+        bool conversion_ok = false;
+        port = QString(port_char).toUShort(&conversion_ok);
+        if (!conversion_ok)
+        {
+            Window::showMessageBox("ERROR", "Can't convert variable 'FAITH_PORT' to unsigned short");
+            Window::Destroy();
+            return -1;
+        }
+    }
+
+    if (argc>=2)
+    {
+        QString option = QString(argv[1]);
+        if (option=="info")
+        {
+            return hostInfo(server_char, port);
+        }
+        else if (option=="completed")
+        {            
+            qDebug() << "connectiong to "+QString(server_char)+" on port "+QString(port_char);
+            QTcpSocket *socket = new QTcpSocket();
+            if (!connectSocket(socket,QString(server_char), port))
+            {
+                qDebug() << "can't connect to "+QString(server_char)+" on port "+QString(port_char);
+                Window::Destroy();
+                return -1;
+            }
+            FaithMessage *msg = sendMessage(socket, FaithMessage::MsgInstallComplete(), {Faithcore::OK});
+            disconnectSocket(socket);
+            if (msg)
+            {
+                Window::Destroy();
+                return 0;
+            }
+            else
+            {
+                qDebug() << server_char << port;
+                qDebug() << "message INSTALL_COMPLETE not delivered ";
+                Window::Destroy();
+                return -1;
+            }
+        }
+        else if (option=="aborted")
+        {
+            QString message="";
+            if (argc>=3) message = QString(argv[2]);
+            QTcpSocket *socket = new QTcpSocket();
+            qDebug() << "connectiong to "+QString(server_char)+" on port "+QString(port_char);
+            if (!connectSocket(socket,QString(server_char), port))
+            {
+                qDebug() << "can't connect to "+QString(server_char)+" on port "+QString(port_char);
+                Window::Destroy();
+                return -1;
+            }
+            FaithMessage *msg = sendMessage(socket, FaithMessage::MsgInstallAborted(message), {Faithcore::OK});
+            disconnectSocket(socket);
+            if (msg)
+            {
+                Window::Destroy();
+                return 0;
+            }
+            else
+            {
+                qDebug() << server_char << port;
+                qDebug() << "message INSTALL_ABORT not delivered ";
+                Window::Destroy();
+                return -1;
+            }
+        }
+    }
+    Window::Destroy();
+    qDebug() << "Usage: "+QString(argv[0]).split("/").last()+" (info|completed|aborted)";
+    return 1;
 }
